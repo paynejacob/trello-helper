@@ -4,6 +4,7 @@ import (
 	"github.com/adlio/trello"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"sort"
 	"time"
 )
 
@@ -27,17 +28,16 @@ func main() {
 	rootCmd.PersistentFlags().StringVar(&token, "token", "", "trello authentication token")
 	_ = rootCmd.MarkPersistentFlagRequired("token")
 
-	if debug {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
-
-	client := trello.NewClient(appKey, token)
-
 	var archiveOlderThanCmd = &cobra.Command{
 		Use:   "archive-older-than",
-		Short: "Archives all cards in a list with last activity older than `maxAge`.",
+		Short: "Archives all cards in a list with activity older than `maxAge`.",
 		Run: func(cmd *cobra.Command, args []string) {
-			logrus.Fatal(token)
+			if debug {
+				logrus.SetLevel(logrus.DebugLevel)
+			}
+
+			client := trello.NewClient(appKey, token)
+
 			ArchiveOlderThan(client, boardID, listID, maxAge)
 		},
 	}
@@ -45,7 +45,7 @@ func main() {
 	archiveOlderThanCmd.PersistentFlags().StringVar(&boardID, "board", "", "trello board ID")
 	_ = archiveOlderThanCmd.MarkPersistentFlagRequired("board")
 	archiveOlderThanCmd.PersistentFlags().StringVar(&listID, "list", "", "trello list ID")
-	archiveOlderThanCmd.PersistentFlags().DurationVar(&maxAge, "maxAge", 30 * 24 * time.Hour, "trello authentication token")
+	archiveOlderThanCmd.PersistentFlags().DurationVar(&maxAge, "maxAge", (90*24)*time.Hour, "trello authentication token")
 	rootCmd.AddCommand(archiveOlderThanCmd)
 
 	rootCmd.Execute()
@@ -63,27 +63,45 @@ func ArchiveOlderThan(client *trello.Client, boardID, listID string, maxAge time
 
 	cards, err = board.GetCards()
 
-	var count int
+	var removed int
+	var total int
 	for _, card := range cards {
+		var movedAt time.Time
+		var actions trello.ActionCollection
+
+		total += 1
+
 		// filter cards not in the given list
-		if listID != "" && card.List.ID != listID {
+		if listID != "" && card.IDList != listID {
 			logrus.Debugf("skipping card due to list filter [%s]", card.ID)
 			continue
 		}
 
+		actions, err = card.GetListChangeActions()
+		if err != nil {
+			logrus.Errorf("failed to get actions for card [%s]", card.ID)
+		}
+
+		actions = actions.FilterToListChangeActions()
+		sort.Sort(sort.Reverse(actions))
+		for i := range actions {
+			movedAt = actions[i].Date
+			break
+		}
+
 		// filter cards not yet expired
-		if card.DateLastActivity.Add(maxAge).After(time.Now()) {
+		if movedAt.IsZero() || time.Now().Before(movedAt.Add(maxAge)) {
 			logrus.Debugf("skipping card due to last activity threshold [%s]", card.ID)
 			continue
 		}
 
-		logrus.Debugf("archiving expired card [%s]", card.ID)
-		count += 1
+		logrus.Debugf("archiving expired card [%s](%s)", card.ID, card.Name)
+		removed += 1
 		err = card.Archive()
 		if err != nil {
 			logrus.Errorf("failed to archive card [%s]: %v", card.ID, err)
 		}
 	}
 
-	logrus.Infof("archived %d cards", count)
+	logrus.Infof("archived %d/%d cards", removed, total)
 }
