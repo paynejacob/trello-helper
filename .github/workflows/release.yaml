@@ -25,7 +25,7 @@ jobs:
           REGISTRY: ghcr.io
           TAG_NAME: ${{ env.VERSION }}
           BUILDX: "true"
-      - uses: bsord/helm-push@v4
+      - uses: paynejacob/helm-push@patch-1
         with:
           useOCIRegistry: true
           registry-url: https://ghcr.io/${{ github.repository }}/charts
