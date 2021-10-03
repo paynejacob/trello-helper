@@ -28,7 +28,7 @@ jobs:
       - uses: bsord/helm-push@v4
         with:
           useOCIRegistry: true
-          registry-url: https://ghcr.io/${{ github.repository }}
+          registry-url: https://ghcr.io/${{ github.repository }}/charts
           username: ${{ github.actor }}
           access-token: ${{ secrets.GITHUB_TOKEN }}
           chart-folder: charts/trello-helper
