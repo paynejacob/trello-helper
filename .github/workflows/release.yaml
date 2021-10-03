@@ -1,0 +1,34 @@
+name: release
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+      - run: echo "CHART_VERSION=${VERSION/v//}" >> $GITHUB_ENV
+      - run: |-
+          yq e -i '.version = strenv(CHART_VERSION)' charts/trello-helper/Chart.yaml
+          yq e -i '.appVersion = strenv(IMAGE_TAG)' charts/trello-helper/Chart.yaml
+      - uses: opspresso/action-docker@master
+        with:
+          args: --docker
+        env:
+          USERNAME: ${{ github.actor }}
+          PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY: ghcr.io
+          TAG_NAME: ${{ env.VERSION }}
+          BUILDX: "true"
+      - uses: bsord/helm-push@v4
+        with:
+          useOCIRegistry: true
+          registry-url: https://ghcr.io/${{ github.repository }}
+          username: ${{ github.actor }}
+          access-token: ${{ secrets.GITHUB_TOKEN }}
+          chart-folder: charts/trello-helper

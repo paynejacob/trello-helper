@@ -1,0 +1,18 @@
+name: validate
+
+on: pull_request
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "1.16.6"
+      - run: go mod tidy
+      - run: go fmt ./...
+      - run: go test ./...
+      - run: helm lint charts/trello-helper
+      - run: if [ -n "$(git status --porcelain --untracked-files=no)" ]; then git --no-pager diff; exit 1; fi

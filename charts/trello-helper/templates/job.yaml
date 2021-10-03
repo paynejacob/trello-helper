@@ -1,0 +1,61 @@
+{{- range $key, $job := .Values.jobs }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "trello-helper.fullname" . }}-{{ replace $job.name " " "-" }}
+  labels:
+    {{- include "trello-helper.labels" . | nindent 4 }}
+spec:
+  schedule: {{ $job.schedule }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          {{- with .Values.podAnnotations }}
+          annotations:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+          labels:
+            {{- include "trello-helper.selectorLabels" . | nindent 8 }}
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.podSecurityContext | nindent 8 }}
+          containers:
+            - name: {{ .Chart.Name }}
+              command: {{ $job.command }}
+              args:
+                - "--appKey=$(APP_KEY)"
+                - "--token=$(TOKEN)"
+                {{- if $job.board }}
+                - "--board={{ $job.board }}"
+                {{- end }}
+                {{- if $job.list }}
+                - "--list={{ $job.list }}"
+                {{- end }}
+                {{- if $job.maxAge }}
+                - "--maxAge={{ $job.maxAge }}"
+                {{- end }}
+              securityContext:
+                {{- toYaml .Values.securityContext | nindent 12 }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              resources:
+                {{- toYaml .Values.resources | nindent 12 }}
+          {{- with .Values.nodeSelector }}
+          nodeSelector:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+          {{- with .Values.affinity }}
+          affinity:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+          {{- with .Values.tolerations }}
+          tolerations:
+            {{- toYaml . | nindent 8 }}
+          {{- end }}
+---
+{{- end }}
