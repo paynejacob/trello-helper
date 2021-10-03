@@ -14,17 +14,6 @@ fullnameOverride: ""
 
 podAnnotations: {}
 
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -48,9 +37,9 @@ appKey: ""
 token: ""
 
 jobs:
-  - name: "cleanup done column"
+  - name: "cleanup-done-column"
     command: archive-older-than
-    schedule: * 0 * * *
+    schedule: "* 0 * * *"
     board: ""
     list: ""
     maxAge: "30d"

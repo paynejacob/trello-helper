@@ -2,31 +2,29 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "trello-helper.fullname" . }}-{{ replace $job.name " " "-" }}
+  name: {{ include "trello-helper.fullname" $ }}-{{ $job.name }}
   labels:
-    {{- include "trello-helper.labels" . | nindent 4 }}
+    {{- include "trello-helper.labels" $ | nindent 4 }}
 spec:
-  schedule: {{ $job.schedule }}
+  schedule: {{ $job.schedule | quote }}
   jobTemplate:
     spec:
       template:
         metadata:
-          {{- with .Values.podAnnotations }}
+          {{- with $.Values.podAnnotations }}
           annotations:
             {{- toYaml . | nindent 8 }}
           {{- end }}
           labels:
-            {{- include "trello-helper.selectorLabels" . | nindent 8 }}
+            {{- include "trello-helper.selectorLabels" $ | nindent 8 }}
         spec:
-          {{- with .Values.imagePullSecrets }}
+          {{- with $.Values.imagePullSecrets }}
           imagePullSecrets:
             {{- toYaml . | nindent 8 }}
           {{- end }}
-          securityContext:
-            {{- toYaml .Values.podSecurityContext | nindent 8 }}
           containers:
-            - name: {{ .Chart.Name }}
-              command: {{ $job.command }}
+            - name: {{ $.Chart.Name }}
+              command: {{ $job.command | quote }}
               args:
                 - "--appKey=$(APP_KEY)"
                 - "--token=$(TOKEN)"
@@ -39,21 +37,19 @@ spec:
                 {{- if $job.maxAge }}
                 - "--maxAge={{ $job.maxAge }}"
                 {{- end }}
-              securityContext:
-                {{- toYaml .Values.securityContext | nindent 12 }}
-              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag | default $.Chart.AppVersion }}"
+              imagePullPolicy: {{ $.Values.image.pullPolicy }}
               resources:
-                {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.nodeSelector }}
+                {{- toYaml $.Values.resources | nindent 16 }}
+          {{- with $.Values.nodeSelector }}
           nodeSelector:
             {{- toYaml . | nindent 8 }}
           {{- end }}
-          {{- with .Values.affinity }}
+          {{- with $.Values.affinity }}
           affinity:
             {{- toYaml . | nindent 8 }}
           {{- end }}
-          {{- with .Values.tolerations }}
+          {{- with $.Values.tolerations }}
           tolerations:
             {{- toYaml . | nindent 8 }}
           {{- end }}
