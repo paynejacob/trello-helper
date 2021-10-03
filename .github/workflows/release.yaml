@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
-      - run: echo "CHART_VERSION=${VERSION/v//}" >> $GITHUB_ENV
+      - run: echo "CHART_VERSION=${VERSION/v/}" >> $GITHUB_ENV
       - run: |-
           yq e -i '.version = strenv(CHART_VERSION)' charts/trello-helper/Chart.yaml
           yq e -i '.appVersion = strenv(IMAGE_TAG)' charts/trello-helper/Chart.yaml
