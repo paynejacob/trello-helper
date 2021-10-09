@@ -17,8 +17,6 @@ jobs:
         with:
           args: --docker
         env:
-          REGISTRY_APPVERSION: ${{ env.VERSION }}
-          REGISTRY_VERSION: ${{ env.CHART_VERSION }}
           USERNAME: ${{ github.actor }}
           PASSWORD: ${{ secrets.GITHUB_TOKEN }}
           REGISTRY: ghcr.io
@@ -31,3 +29,5 @@ jobs:
           username: ${{ github.actor }}
           access-token: ${{ secrets.GITHUB_TOKEN }}
           chart-folder: charts/trello-helper
+          version: ${{ env.CHART_VERSION }}
+          app-version: ${{ env.VERSION }}
