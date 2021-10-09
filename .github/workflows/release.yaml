@@ -30,4 +30,4 @@ jobs:
           access-token: ${{ secrets.GITHUB_TOKEN }}
           chart-folder: charts/trello-helper
           version: ${{ env.CHART_VERSION }}
-          app-version: ${{ env.VERSION }}
+          appVersion: ${{ env.VERSION }}
