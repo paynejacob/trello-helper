@@ -25,9 +25,8 @@ spec:
           restartPolicy: Never
           containers:
             - name: {{ $.Chart.Name }}
-              command:
-                - {{ $job.command | quote }}
               args:
+                - {{ $job.command | quote }}
                 - "--appKey=$(APP_KEY)"
                 - "--token=$(TOKEN)"
                 {{- if $job.board }}
