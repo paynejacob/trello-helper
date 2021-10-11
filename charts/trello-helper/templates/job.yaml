@@ -25,6 +25,9 @@ spec:
           restartPolicy: Never
           containers:
             - name: {{ $.Chart.Name }}
+              envFrom:
+                - secretRef:
+                    name: {{ template "trello-helper.fullname" $ }}
               args:
                 - {{ $job.command | quote }}
                 - "--appKey=$(APP_KEY)"
