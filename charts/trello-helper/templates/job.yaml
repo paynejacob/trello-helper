@@ -13,18 +13,20 @@ spec:
         metadata:
           {{- with $.Values.podAnnotations }}
           annotations:
-            {{- toYaml . | nindent 8 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
           labels:
-            {{- include "trello-helper.selectorLabels" $ | nindent 8 }}
+            {{- include "trello-helper.selectorLabels" $ | nindent 12 }}
         spec:
           {{- with $.Values.imagePullSecrets }}
           imagePullSecrets:
-            {{- toYaml . | nindent 8 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
+          restartPolicy: Never
           containers:
             - name: {{ $.Chart.Name }}
-              command: {{ $job.command | quote }}
+              command:
+                - {{ $job.command | quote }}
               args:
                 - "--appKey=$(APP_KEY)"
                 - "--token=$(TOKEN)"
