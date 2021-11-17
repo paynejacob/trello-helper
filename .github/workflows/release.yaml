@@ -22,11 +22,11 @@ jobs:
           REGISTRY: ghcr.io
           TAG_NAME: ${{ env.VERSION }}
           BUILDX: "true"
-      - uses: paynejacob/helm-push@patch-1
+      - uses: bsord/helm-push@v4
         with:
           registry-url: https://charts.jacobapayne.com
-          username: ${{ github.actor }}
-          access-token: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.HELM_USERNAME }}
+          password: ${{ secrets.HELM_PASSWORD }}
           chart-folder: charts/trello-helper
           version: ${{ env.CHART_VERSION }}
           appVersion: ${{ env.VERSION }}
